@@ -1,8 +1,8 @@
-﻿namespace VendingMachine3.Domain { 
-    using System.Collections.Generic;
-    using System.Linq;
-    using VendingMachine3.Domain;
+﻿using System.Collections.Generic;
+using System.Linq;
 
+namespace VendingMachine3.Domain
+{
     public class StockManager
     {
         public List<VendingMachineItem> Stock { get; }
@@ -29,15 +29,13 @@
             return false;
         }
 
-        public void ReplenishStock(Dictionary<int, int> stockCounts)
+        // Add a method to replenish stock for a specific item
+        public void ReplenishStock(int itemId, int quantityToAdd)
         {
-            foreach (var stockCount in stockCounts)
+            var itemToReplenish = Stock.FirstOrDefault(item => item.Id == itemId);
+            if (itemToReplenish != null)
             {
-                var item = Stock.FirstOrDefault(i => i.Id == stockCount.Key);
-                if (item != null)
-                {
-                    item.Quantity += stockCount.Value;
-                }
+                itemToReplenish.Quantity += quantityToAdd;
             }
         }
     }

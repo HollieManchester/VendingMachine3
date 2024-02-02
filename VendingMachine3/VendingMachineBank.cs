@@ -1,43 +1,32 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+namespace VendingMachine3.Domain { 
 
 public class VendingMachineBank
 {
     private decimal amount;
-    private Dictionary<decimal, int> coinDenominations;
+    private List<CoinDenomination> coinDenominations;
     private Currency currentCurrency;
     private Dictionary<string, int> productStock;
 
-    public VendingMachineBank(decimal initialAmount, Currency currentCurrency, Dictionary<string, int> initialProductStock)
+    public decimal Balance => amount;
+
+    public VendingMachineBank(decimal initialAmount, Currency currentCurrency, List<CoinDenomination> initialCoinDenominations, Dictionary<string, int> initialProductStock)
     {
         amount = initialAmount;
         this.currentCurrency = currentCurrency;
-        InitializeCoinDenominations();
+        coinDenominations = initialCoinDenominations;
         productStock = initialProductStock;
-    }
-
-    private void InitializeCoinDenominations()
-    {
-        coinDenominations = new Dictionary<decimal, int>
-        {
-            { 2.00m, 10 },
-            { 1.00m, 10 },
-            { 0.50m, 10 },
-            { 0.20m, 10 },
-            { 0.10m, 10 },
-            { 0.05m, 10 },
-            { 0.02m, 10 },
-            { 0.01m, 10 }
-        };
     }
 
     public decimal InsertCoin(decimal coinValue)
     {
-        if (coinDenominations.ContainsKey(coinValue) && coinDenominations[coinValue] > 0)
+        var denomination = coinDenominations.FirstOrDefault(d => d.Value == coinValue && d.Count > 0);
+        if (denomination != null)
         {
             amount += coinValue;
-            coinDenominations[coinValue]--;
+            denomination.Count--;
             Console.WriteLine($"Inserted {currentCurrency.Symbol}{coinValue:F2}. Current balance: {currentCurrency.Symbol}{amount:F2}");
             return amount;
         }
@@ -68,14 +57,14 @@ public class VendingMachineBank
 
     private void DispenseChange(decimal changeAmount)
     {
-        foreach (var denomination in coinDenominations.OrderByDescending(d => d.Key))
+        foreach (var denomination in coinDenominations.OrderByDescending(d => d.Value))
         {
-            int coinsToDispense = (int)(changeAmount / denomination.Key);
-            if (coinsToDispense > 0 && coinDenominations[denomination.Key] >= coinsToDispense)
+            int coinsToDispense = (int)(changeAmount / denomination.Value);
+            if (coinsToDispense > 0 && denomination.Count >= coinsToDispense)
             {
-                Console.WriteLine($"Dispensing {coinsToDispense} x {currentCurrency.Symbol}{denomination.Key:F2} coins");
-                changeAmount -= coinsToDispense * denomination.Key;
-                coinDenominations[denomination.Key] -= coinsToDispense;
+                Console.WriteLine($"Dispensing {coinsToDispense} x {currentCurrency.Symbol}{denomination.Value:F2} coins");
+                changeAmount -= coinsToDispense * denomination.Value;
+                denomination.Count -= coinsToDispense;
             }
         }
     }
@@ -84,4 +73,5 @@ public class VendingMachineBank
     {
         return amount >= itemPrice;
     }
+}
 }
